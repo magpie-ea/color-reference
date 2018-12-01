@@ -1,0 +1,15 @@
+{
+    "name": "colorreference",
+    "version": "1.0.0",
+    "description": "Implementation of the Color Reference Game",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Xiang Ji",
+    "license": "ISC",
+    "dependencies": {
+        "babe-project": "0.0.24",
+        "phoenix": "^1.4.0"
+    }
+}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>Page Title</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <!--
+            <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+        -->
+        <!-- <script src="main.js"></script> -->
+        <script src="node_modules/phoenix/priv/static/phoenix.js"></script>
+        <script src="channeltest.js"></script>
+    </head>
+    <body>
+        <h2>Color Reference Game</h2>
+        <div id="chat-box"></div>
+
+        <form id="chat-form">
+            <label for="user-role" id="user-role"></label>
+            <textarea
+                placeholder="Send message to the other participant."
+                id="user-msg"
+            ></textarea>
+            <button type="submit">Send</button>
+        </form>
+
+        <div class="color-container">
+            <div class="color-div color-div-1"></div>
+            <div class="color-div color-div-2"></div>
+            <div class="color-div color-div-3"></div>
+        </div>
+    </body>
+</html>
