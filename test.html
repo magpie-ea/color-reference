@@ -3,21 +3,19 @@
     <head>
         <meta charset="utf-8" />
         <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <title>Page Title</title>
+        <title>Color Reference Game</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <!--
-            <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
-        -->
-        <!-- <script src="main.js"></script> -->
+        <link rel="stylesheet" href="style.css" />
         <script src="node_modules/phoenix/priv/static/phoenix.js"></script>
-        <script src="channeltest.js"></script>
+        <script src="interactiveexptest.js"></script>
     </head>
     <body>
-        <h2>Color Reference Game</h2>
+        <h3 id="title">Color Reference Game</h3>
+        <p id="instructions"></p>
         <div id="chat-box"></div>
 
+        <label for="user-role" id="user-role"></label>
         <form id="chat-form">
-            <label for="user-role" id="user-role"></label>
             <textarea
                 placeholder="Send message to the other participant."
                 id="user-msg"
