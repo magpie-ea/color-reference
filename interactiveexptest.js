@@ -31,7 +31,7 @@ function sampleIndices() {
     return indices;
 }
 
-/* For generating random user IDs */
+/* For generating random participant IDs */
 // https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
 // dec2hex :: Integer -> String
 function dec2hex(dec) {
@@ -54,7 +54,7 @@ function shuffleArray(array) {
 
 /* For initializing the UI when the game begins */
 let initializeUI = function(role) {
-    let roleLabel = document.getElementById("user-role");
+    let roleLabel = document.getElementById("participant-role");
     let title = document.getElementById("title");
     let instructions = document.getElementById("instructions");
     roleLabel.innerHTML = role;
@@ -77,7 +77,7 @@ let produceColorStyle = function(hslArray) {
 /* For actually filling the colors for each round into the stims. */
 let fillColors = function(colors, indices) {
     let color_divs = document.getElementsByClassName("color-div");
-    let role = document.getElementById("user-role").innerText;
+    let role = document.getElementById("participant-role").innerText;
 
     color_divs[indices[0]].classList.remove([
         "target",
@@ -115,35 +115,42 @@ let fillColors = function(colors, indices) {
 /* End helper functions */
 
 // Generate a unique ID for each participant.
-const user_id = generateId(40);
+const participant_id = generateId(40);
 
 // Create a new socket
 // Documentation at: https://hexdocs.pm/phoenix/js/
+// let socket = new Phoenix.Socket("ws://localhost:4000/socket", {
+//     params: { participant_id: participant_id }
+// });
 let socket = new Phoenix.Socket("wss://babe-demo.herokuapp.com/socket", {
-    params: { user_id: user_id }
+    params: { participant_id: participant_id }
 });
-// let socket = new Phoenix.Socket(`${config.socketURL}`, { params: { user_id : user_id} });
+// let socket = new Phoenix.Socket(`${config.socketURL}`, { params: { participant_id : participant_id} });
 
 // A single "connection" is established, and channels are *multiplexed* over this connection.
 socket.connect();
 
 // Now that you are connected, you can join channels.
 // Declare the lobbyChannel to be joined later.
-let lobbyChannel = socket.channel("color_reference:lobby", {});
+// The number in the end corresponds to the experiment ID.
+let lobbyChannel = socket.channel("interactive_experiment:lobby:46", {});
 
-// First join the user channel belonging only to this user.
-let userChannel = socket.channel(`color_reference:user:${user_id}`, {});
-userChannel
+// First join the participant channel belonging only to this participant.
+let participantChannel = socket.channel(
+    `interactive_experiment:participant:${participant_id}`,
+    {}
+);
+participantChannel
     .join()
     // Note that `receive` functions are for receiving a *reply* from the server after you try to send it something, e.g. `join()` or `push()`.
     // While `on` function is for passively listening for new messages initiated by the server.
     .receive("ok", (msg) => {
-        console.log("Joined user channel successfully", msg);
-        // After joining the user channel, join the lobby to wait for enough participants to arrive.
+        console.log("Joined participant channel successfully", msg);
+        // After joining the participant channel, join the lobby to wait for enough participants to arrive.
         joinLobby();
     })
     .receive("error", (reasons) => {
-        console.log("Unable to join user channel", reasons);
+        console.log("Unable to join participant channel", reasons);
     })
     .receive("timeout", () => {
         console.log("Connection timed out. Networking issue.");
@@ -163,10 +170,11 @@ let joinLobby = function() {
         });
 };
 
-// When the server tells the user it's time to start the game with the "game_start" message (e.g. when there are two participants for the game already for this game), the client side JS does the preparation work (e.g. initialize the UI)
-userChannel.on("game_start", (payload) => {
+// When the server tells the participant it's time to start the game with the "game_start" message (e.g. when there are two participants for the game already for this game), the client side JS does the preparation work (e.g. initialize the UI)
+participantChannel.on("game_start", (payload) => {
     const lounge_id = payload.lounge_id;
-    const role = payload.role;
+    console.log(payload.nth_participant);
+    const role = payload.nth_participant == 0 ? "speaker" : "listener";
     initializeUI(role);
 
     // Join the game lounge on the server with the specified lounge_id.
@@ -176,7 +184,10 @@ userChannel.on("game_start", (payload) => {
 });
 
 let startGame = function(lounge_id, role) {
-    let gameChannel = socket.channel(`color_reference:lounge:${lounge_id}`, {});
+    let gameChannel = socket.channel(
+        `interactive_experiment:lounge:${lounge_id}`,
+        {}
+    );
 
     gameChannel
         .join()
@@ -202,8 +213,8 @@ let startGame = function(lounge_id, role) {
         .addEventListener("submit", function(e) {
             e.preventDefault();
 
-            let text = document.getElementById("user-msg").value;
-            let role = document.getElementById("user-role").innerText;
+            let text = document.getElementById("participant-msg").value;
+            let role = document.getElementById("participant-role").innerText;
             gameChannel.push("new_msg", { message: `${role}: ${text}` });
         });
 
