@@ -9,11 +9,12 @@ $("document").ready(function() {
     };
 
     babeInit({
-        views_seq: [intro, instructions, thanks],
+        views_seq: [intro, instructions, lobby, game, thanks],
         deploy: {
-            experimentID: "4",
+            experimentID: "46",
             serverAppURL:
                 "https://babe-demo.herokuapp.com/api/submit_experiment/",
+            socketURL: "wss://babe-demo.herokuapp.com/socket",
             deployMethod: "debug",
             contact_email: "YOUREMAIL@wherelifeisgreat.you",
             prolificURL:
