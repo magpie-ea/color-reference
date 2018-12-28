@@ -9,7 +9,13 @@
 
 */
 
-let intro = babeViews.intro({
+const init = colorReferenceViews.init({
+    trials: 1,
+    name: "init",
+    title: "Initializing"
+});
+
+const intro = babeViews.intro({
     name: "intro",
     trials: 1,
     title: "Welcome!",
@@ -31,7 +37,7 @@ const instructions = babeViews.instructions({
     buttonText: "To the Lobby"
 });
 
-const lobby = colorReferenceViews.lobby({
+const lobby = colorReferenceViews.interactiveExperimentLobby({
     name: "lobby",
     trials: 1,
     title: "Lobby",
