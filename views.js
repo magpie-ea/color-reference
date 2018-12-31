@@ -31,6 +31,7 @@ const instructions = babeViews.instructions({
     text: `In this experiment, two participants interact with each other. In each trial, three colors are shown to the participants. Only the speaker knows which of the three colors is the <i>target</i> color. The speaker and the listener can talk to each other via a chat box. Once the listener feels confident enough, they will click on one of the colors. The experiment then moves on to the next trial.
     
     <br>
+    <br>
 
     The first participant will be put in the "lobby" waiting for another participant to join. Once two participants are matched with each other, the experiment starts.
     `,
@@ -51,7 +52,7 @@ const game = colorReferenceViews.game({
 });
 
 // submits the results
-const thanks = babeViews.thanks({
+const thanks = colorReferenceViews.thanksWithSocket({
     trials: 1,
     name: "thanks",
     title: "Thank you for taking part in this experiment!",

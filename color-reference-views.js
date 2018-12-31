@@ -6,10 +6,10 @@ const colorReferenceViews = {
             text: config.text || "Initializing the experiment...",
             render: function(CT, babe) {
                 const viewTemplate = `
-                        <div className="babe-view">
-                            <h1 className="babe-view-title">${this.title}</h1>
-                            <section className="babe-text-container">
-                                <p id="lobby-text" className="babe-view-text">${
+                        <div class="babe-view">
+                            <h1 class="babe-view-title">${this.title}</h1>
+                            <section class="babe-text-container">
+                                <p id="lobby-text" class="babe-view-text">${
                                     this.text
                                 }</p>
                             </section>
@@ -65,7 +65,6 @@ const colorReferenceViews = {
                 babe.participantChannel.on(
                     "experiment_available",
                     (payload) => {
-                        console.log(payload);
                         // First record the assigned <variant-nr, chain-nr, realization-nr> tuple.
                         babe.variant = payload.variant;
                         babe.chain = payload.chain;
@@ -101,10 +100,10 @@ const colorReferenceViews = {
             text: config.text || "Connecting to the server...",
             render: function(CT, babe) {
                 const viewTemplate = `
-                    <div className="babe-view">
-                        <h1 className="babe-view-title">${this.title}</h1>
-                        <section className="babe-text-container">
-                            <p id="lobby-text" className="babe-view-text">${
+                    <div class="babe-view">
+                        <h1 class="babe-view-title">${this.title}</h1>
+                        <section class="babe-text-container">
+                            <p id="lobby-text" class="babe-view-text">${
                                 this.text
                             }</p>
                         </section>
@@ -113,31 +112,18 @@ const colorReferenceViews = {
 
                 $("#main").html(viewTemplate);
 
-                // Declare the lobbyChannel to be joined later.
-                // The number in the end corresponds to the experiment ID.
-                babe.lobbyChannel = babe.socket.channel(
-                    `lobby:${babe.deploy.experimentID}`,
+                // This channel will be used for all subsequent group communications in this one experiment.
+                babe.gameChannel = babe.socket.channel(
+                    `interactive_room:${babe.deploy.experimentID}:${
+                        babe.chain
+                    }:${babe.realization}`,
                     { participant_id: babe.participant_id }
                 );
 
-                babe.lobbyPresence = new Phoenix.Presence(babe.lobbyChannel);
+                // We don't really need to track the presence on the client side for now.
+                // babe.lobbyPresence = new Phoenix.Presence(babe.gameChannel);
 
-                // Check whether the interactive experiment can be started.
-                function checkGameStartCondition() {
-                    babe.lobbyPresence.list();
-                }
-
-                babe.lobbyChannel.on("presence_state", (payload) => {
-                    // babe.lobbyPresence.list((id, metas_map) => {
-                    //     if (id == babe.deploy.experimentID) {
-                    //         list
-                    //     }
-                    // });
-                    console.log(payload);
-                    console.table(payload);
-                });
-
-                babe.lobbyChannel
+                babe.gameChannel
                     .join()
                     .receive("ok", (msg) => {
                         document.getElementById("lobby-text").innerHTML =
@@ -150,13 +136,132 @@ const colorReferenceViews = {
                         babe.onSocketTimeout();
                     });
 
-                // When the server tells the participant it's time to start the game with the "game_start" message (e.g. when there are enough participants for the game already for this game), the client side JS does the preparation work (e.g. initialize the UI)
+                /* If we want to make the lobby view reusable, we might want to extract the few functions below into a new view particular to this experiment. They could not be put into gameView because otherwise the same channel listener would be repeatedly attached multiple times. */
+                let fillColor = function(div, color, type) {
+                    div.classList.remove([
+                        "target",
+                        "distractor1",
+                        "distractor2"
+                    ]);
+
+                    div.classList.add(type);
+
+                    if (type == "target" && babe.variant == 1) {
+                        div.classList.add("speaker-target");
+                    }
+
+                    div.style[
+                        "background-color"
+                    ] = colorReferenceUtils.produceColorStyle(color);
+
+                    div.dataset.type = type;
+                };
+
+                let saveTrialData = function(prev_round_trial_data) {
+                    // These could be different for each participant, thus they fill them in before recording them.
+                    prev_round_trial_data["variant"] = babe.variant;
+                    prev_round_trial_data["chain"] = babe.chain;
+                    prev_round_trial_data["realization"] = babe.realization;
+
+                    babe.trial_data.push(prev_round_trial_data);
+                };
+
+                let setUpOneRound = function(colors) {
+                    // Seems that we just have to store them globally somewhere.
+                    let indices = [0, 1, 2];
+                    colorReferenceUtils.shuffleArray(indices);
+
+                    let color_divs = document.getElementsByClassName(
+                        "color-div"
+                    );
+                    let count = 0;
+                    for (let [type, color] of Object.entries(colors)) {
+                        fillColor(color_divs[indices[count]], color, type);
+                        count += 1;
+                    }
+
+                    for (let div of color_divs) {
+                        div.onclick = (e) => {
+                            // Note that we can only record the reaction time of the guy who actively ended this round. Other interactive experiments might have different requirements though.
+                            const RT = Date.now() - babe.startingTime;
+                            const trial_data = {
+                                trial_type: config.trial_type,
+                                trial_number: CT + 1,
+                                color_first_distractor:
+                                    colors["firstDistractor"],
+                                color_second_distractor:
+                                    colors["secondDistractor"],
+                                color_target: colors["target"],
+                                selected_type: div.dataset.type,
+                                selected_color: div.style["background-color"],
+                                // Better put them into one single string.
+                                conversation: babe.conversation.join("\n"),
+                                RT: RT
+                            };
+
+                            // Ask the server to advance to the next round.
+                            // OK just send the results from this round as well. In this way the guy who is passively brought to the next round can also record their side of trial_data in the way they see fit.
+                            if (CT + 1 <= config.trials) {
+                                babe.gameChannel.push("next_round", {
+                                    colors: colorReferenceUtils.sampleColors(),
+                                    prev_round_trial_data: trial_data
+                                });
+                            } else {
+                                babe.gameChannel.push("game_end", {
+                                    prev_round_trial_data: trial_data
+                                });
+                            }
+                        };
+                    }
+                };
+
+                // When the server tells the participant it's time to start the game with the "start_game" message (e.g. when there are enough participants for the game already for this game), the client side JS does the preparation work (e.g. initialize the UI)
                 // The payload contains two pieces of information: `lounge_id` and `nth_participant`, which indicates the rank of the current participant among all participants for this game.
-                babe.participantChannel.on("game_start", (payload) => {
-                    // For now the easiest way might just be to store this payload in a global variable and let later views use it.
-                    babe.interactiveExpInitializationPayload = payload;
-                    // Already started a game. Leave the lobby.
-                    babe.lobbyChannel.leave();
+                babe.gameChannel.on("start_game", (payload) => {
+                    // One of the participants need to generate and send the data for the very first round.
+                    if (babe.variant == 2) {
+                        babe.gameChannel.push("initialize_game", {
+                            colors: colorReferenceUtils.sampleColors()
+                        });
+                    }
+                });
+
+                // Display the message received from the server upon `new_msg` event.
+                babe.gameChannel.on("new_msg", (payload) => {
+                    let chatBox = document.querySelector("#chat-box");
+                    let msgBlock = document.createElement("p");
+                    msgBlock.classList.add("babe-view-text");
+                    msgBlock.insertAdjacentHTML(
+                        "beforeend",
+                        `${payload.message}`
+                    );
+                    chatBox.appendChild(msgBlock);
+                    babe.conversation.push(payload.message);
+                });
+
+                // Things to do on initialize_game, next_round and end_game are slightly different.
+                // Another way is to tell them apart via some payload content. But the following way also works.
+                babe.gameChannel.on("initialize_game", (payload) => {
+                    // We run findNextView() to advance to the next round.
+                    babe.findNextView();
+
+                    setUpOneRound(payload.colors);
+                });
+
+                // Get information regarding the next round and do the corresponding work.
+                babe.gameChannel.on("next_round", (payload) => {
+                    saveTrialData(payload.prev_round_trial_data);
+
+                    // We run findNextView() to advance to the next round.
+                    babe.findNextView();
+
+                    setUpOneRound(payload.colors);
+                });
+
+                // Only save the data and do nothing else
+                babe.gameChannel.on("end_game", (payload) => {
+                    saveTrialData(payload.prev_round_trial_data);
+
                     babe.findNextView();
                 });
             },
@@ -171,7 +276,6 @@ const colorReferenceViews = {
             name: config.name,
             title: config.title,
             render: function(CT, babe) {
-                let startingTime;
                 const viewTemplate = `
                     <div class='babe-view'>
                         <h1 id="title" class='babe-view-title'>${
@@ -179,17 +283,19 @@ const colorReferenceViews = {
                         }</h1>
                         <section class="babe-text-container">
                             <p id="game-instructions" class="babe-view-text">                            </p></section>
+                            <br/>
+                            <br/>
                         <div id="chat-box"></div>
 
-
-                        <label for="participant-role" id="participant-role"></label>
+                            <div class="babe-view-answer-container">
                         <form id="chat-form">
-                            <textarea
+                            <textarea cols=50 class='babe-response-text'
                                 placeholder="Send message to the other participant."
                                 id="participant-msg"
                             ></textarea>
-                            <button type="submit">Send</button>
+                            <button type="submit" class="babe-view-button">Send</button>
                         </form>
+                        </div>
 
                         <div class="color-container babe-view-stimulus-container">
                             <div class="color-div color-div-1"></div>
@@ -201,14 +307,15 @@ const colorReferenceViews = {
 
                 $("#main").html(viewTemplate);
 
+                // Set the role of the participant based on the variant assigned.
+                babe.role = babe.variant == 1 ? "speaker" : "listener";
+
                 /* For initializing the UI when the game begins */
                 let initializeUI = function(role) {
-                    let roleLabel = document.getElementById("participant-role");
                     let title = document.getElementById("title");
                     let instructions = document.getElementById(
                         "game-instructions"
                     );
-                    roleLabel.innerHTML = role;
                     if (role == "speaker") {
                         title.innerText = "You are the speaker";
                         instructions.innerText =
@@ -216,145 +323,101 @@ const colorReferenceViews = {
                     } else if (role == "listener") {
                         title.innerText = "You are the listener";
                         instructions.innerText =
-                            "Click on the target object which the speaker is telling you about";
+                            "Communicate with the speaker using the chatbox. Click on the target object which the speaker is telling you about once you feel confident enough.";
                     }
                 };
 
-                /* For producing usable strings to be set as the background color. */
-                let produceColorStyle = function(hslArray) {
-                    return `hsl(${hslArray[0]},${hslArray[1]}%,${
-                        hslArray[2]
-                    }%)`;
-                };
+                babe.conversation = [];
 
-                /* For actually filling the colors for each round into the stims. */
-                let fillColors = function(colors, indices) {
-                    let color_divs = document.getElementsByClassName(
-                        "color-div"
-                    );
-                    let role = document.getElementById("participant-role")
-                        .innerText;
+                // Messages are sent to each other via the `new_msg` event.
+                // I think we have to clone the element if we
+                document
+                    .getElementById("chat-form")
+                    .addEventListener("submit", function(e) {
+                        e.preventDefault();
 
-                    color_divs[indices[0]].classList.remove([
-                        "target",
-                        "distractor1",
-                        "distractor2"
-                    ]);
-                    color_divs[indices[0]].classList.add("target");
-                    // This is to add a border to let the speaker know which is the target
-                    if (role == "speaker") {
-                        color_divs[indices[0]].classList.add("speaker-target");
-                    }
-                    color_divs[indices[1]].classList.remove([
-                        "target",
-                        "distractor1",
-                        "distractor2"
-                    ]);
-                    color_divs[indices[1]].classList.add("distractor1");
-                    color_divs[indices[2]].classList.remove([
-                        "target",
-                        "distractor1",
-                        "distractor2"
-                    ]);
-                    color_divs[indices[2]].classList.add("distractor2");
-
-                    color_divs[indices[0]].style[
-                        "background-color"
-                    ] = produceColorStyle(colors["target"]);
-                    color_divs[indices[1]].style[
-                        "background-color"
-                    ] = produceColorStyle(colors["firstDistractor"]);
-                    color_divs[indices[2]].style[
-                        "background-color"
-                    ] = produceColorStyle(colors["secondDistractor"]);
-                };
-
-                let startGame = function(lounge_id, role) {
-                    let gameChannel = babe.socket.channel(
-                        `interactive_experiment:lounge:${lounge_id}`,
-                        {}
-                    );
-
-                    gameChannel
-                        .join()
-                        .receive("ok", (msg) => {
-                            if (role == "speaker") {
-                                gameChannel.push("next_round", {
-                                    colors: colorReferenceUtils.sampleColors(),
-                                    indices: colorReferenceUtils.sampleIndices()
-                                });
-                            }
-                        })
-                        .receive("error", (reasons) => {
-                            babe.onSocketError(reasons);
-                        })
-                        .receive("timeout", () => {
-                            babe.onSocketTimeout();
+                        let text = document.getElementById("participant-msg")
+                            .value;
+                        babe.gameChannel.push("new_msg", {
+                            message: `${babe.role}: ${text}`
                         });
-
-                    // Messages are sent to each other via the `new_msg` event.
-                    document
-                        .getElementById("chat-form")
-                        .addEventListener("submit", function(e) {
-                            e.preventDefault();
-
-                            let text = document.getElementById(
-                                "participant-msg"
-                            ).value;
-                            let role = document.getElementById(
-                                "participant-role"
-                            ).innerText;
-                            gameChannel.push("new_msg", {
-                                message: `${role}: ${text}`
-                            });
-                        });
-
-                    // Display the message received from the server upon `new_msg` event.
-                    gameChannel.on("new_msg", (payload) => {
-                        let chatBox = document.querySelector("#chat-box");
-                        let msgBlock = document.createElement("p");
-                        msgBlock.insertAdjacentHTML(
-                            "beforeend",
-                            `${payload.message}`
-                        );
-                        chatBox.appendChild(msgBlock);
                     });
 
-                    // One of the participants signals the next round to begin
-                    // TODO: This should be done when the participant selects a target color
-                    // The payload should also contain the color information generated by the speaker.
-                    // Actually we can also generate the colors on the server side but now that there's existing code on the client side let's just still go with it for now.
-                    gameChannel.on("next_round", (payload) => {
-                        fillColors(payload.colors, payload.indices);
-                    });
-                };
+                babe.startingTime = Date.now();
 
-                startingTime = Date.now();
-
-                const lounge_id =
-                    babe.interactiveExpInitializationPayload.lounge_id;
-                const role =
-                    babe.interactiveExpInitializationPayload.nth_participant ==
-                    0
-                        ? "speaker"
-                        : "listener";
-
-                initializeUI(role);
-
-                // Join the game lounge on the server with the specified lounge_id.
-                startGame(lounge_id, role);
-                // Already started a game. Leave the lobby.
-                babe.lobbyChannel.leave();
-
-                // These should be triggered after the listener makes a choice.
-                // Should also record the conversation content?
-                babe.trial_data.push(trial_data);
-                babe.findNextView();
+                initializeUI(babe.role);
             },
             CT: 0,
             trials: config.trials
         };
 
         return _game;
+    },
+
+    thanksWithSocket: function(config) {
+        const _thanks = {
+            name: config.name,
+            title: babeUtils.view.setter.title(
+                config.title,
+                "Thank you for taking part in this experiment!"
+            ),
+            prolificConfirmText: babeUtils.view.setter.prolificConfirmText(
+                config.prolificConfirmText,
+                "Please press the button below to confirm that you completed the experiment with Prolific"
+            ),
+            render: function(CT, babe) {
+                if (
+                    babe.deploy.is_MTurk ||
+                    babe.deploy.deployMethod === "directLink"
+                ) {
+                    // updates the fields in the hidden form with info for the MTurk's server
+                    $("#main").html(
+                        `<div class='babe-view babe-thanks-view'>
+                            <h2 id='warning-message' class='babe-warning'>Submitting the data
+                                <p class='babe-view-text'>please do not close the tab</p>
+                                <div class='babe-loader'></div>
+                            </h2>
+                            <h1 id='thanks-message' class='babe-thanks babe-nodisplay'>${
+                                this.title
+                            }</h1>
+                        </div>`
+                    );
+                } else if (babe.deploy.deployMethod === "Prolific") {
+                    $("#main").html(
+                        `<div class='babe-view babe-thanks-view'>
+                            <h2 id='warning-message' class='babe-warning'>Submitting the data
+                                <p class='babe-view-text'>please do not close the tab</p>
+                                <div class='babe-loader'></div>
+                            </h2>
+                            <h1 id='thanks-message' class='babe-thanks babe-nodisplay'>${
+                                this.title
+                            }</h1>
+                            <p id='extra-message' class='babe-view-text babe-nodisplay'>
+                                ${this.prolificConfirmText}
+                                <a href="${
+                                    babe.deploy.prolificURL
+                                }" class="babe-view-button prolific-url">Confirm</a>
+                            </p>
+                        </div>`
+                    );
+                } else if (babe.deploy.deployMethod === "debug") {
+                    $("main").html(
+                        `<div id='babe-debug-table-container' class='babe-view babe-thanks-view'>
+                            <h1 class='babe-view-title'>Debug Mode</h1>
+                        </div>`
+                    );
+                } else {
+                    console.error("No such babe.deploy.deployMethod");
+                }
+
+                babe.submission = colorReferenceUtils.babeSubmitWithSocket(
+                    babe
+                );
+                babe.submission.submit(babe);
+            },
+            CT: 0,
+            trials: 1
+        };
+        return _thanks;
     }
 };
