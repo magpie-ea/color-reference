@@ -180,38 +180,42 @@ const colorReferenceViews = {
                         count += 1;
                     }
 
-                    for (let div of color_divs) {
-                        div.onclick = (e) => {
-                            // Note that we can only record the reaction time of the guy who actively ended this round. Other interactive experiments might have different requirements though.
-                            const RT = Date.now() - babe.startingTime;
-                            const trial_data = {
-                                trial_type: config.trial_type,
-                                trial_number: CT + 1,
-                                color_first_distractor:
-                                    colors["firstDistractor"],
-                                color_second_distractor:
-                                    colors["secondDistractor"],
-                                color_target: colors["target"],
-                                selected_type: div.dataset.type,
-                                selected_color: div.style["background-color"],
-                                // Better put them into one single string.
-                                conversation: babe.conversation.join("\n"),
-                                RT: RT
-                            };
+                    // Only the listener can select a response apparently.
+                    if (babe.variant == 2) {
+                        for (let div of color_divs) {
+                            div.onclick = (e) => {
+                                // Note that we can only record the reaction time of the guy who actively ended this round. Other interactive experiments might have different requirements though.
+                                const RT = Date.now() - babe.startingTime;
+                                const trial_data = {
+                                    trial_type: config.trial_type,
+                                    trial_number: CT + 1,
+                                    color_first_distractor:
+                                        colors["firstDistractor"],
+                                    color_second_distractor:
+                                        colors["secondDistractor"],
+                                    color_target: colors["target"],
+                                    selected_type: div.dataset.type,
+                                    selected_color:
+                                        div.style["background-color"],
+                                    // Better put them into one single string.
+                                    conversation: babe.conversation.join("\n"),
+                                    RT: RT
+                                };
 
-                            // Ask the server to advance to the next round.
-                            // OK just send the results from this round as well. In this way the guy who is passively brought to the next round can also record their side of trial_data in the way they see fit.
-                            if (CT + 1 <= config.trials) {
-                                babe.gameChannel.push("next_round", {
-                                    colors: colorReferenceUtils.sampleColors(),
-                                    prev_round_trial_data: trial_data
-                                });
-                            } else {
-                                babe.gameChannel.push("game_end", {
-                                    prev_round_trial_data: trial_data
-                                });
-                            }
-                        };
+                                // Ask the server to advance to the next round.
+                                // OK just send the results from this round as well. In this way the guy who is passively brought to the next round can also record their side of trial_data in the way they see fit.
+                                if (CT + 1 <= config.trials) {
+                                    babe.gameChannel.push("next_round", {
+                                        colors: colorReferenceUtils.sampleColors(),
+                                        prev_round_trial_data: trial_data
+                                    });
+                                } else {
+                                    babe.gameChannel.push("game_end", {
+                                        prev_round_trial_data: trial_data
+                                    });
+                                }
+                            };
+                        }
                     }
                 };
 
