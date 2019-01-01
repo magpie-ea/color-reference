@@ -112,6 +112,8 @@ const colorReferenceViews = {
 
                 $("#main").html(viewTemplate);
 
+                babe.trial_counter = 0;
+
                 // This channel will be used for all subsequent group communications in this one experiment.
                 babe.gameChannel = babe.socket.channel(
                     `interactive_room:${babe.deploy.experimentID}:${
@@ -182,13 +184,16 @@ const colorReferenceViews = {
 
                     // Only the listener can select a response apparently.
                     if (babe.variant == 2) {
+                        // The problem is that the CT cannot be properly obtained from the arguments because this view is not the actual game view.
+                        babe.trial_counter += 1;
+
                         for (let div of color_divs) {
                             div.onclick = (e) => {
                                 // Note that we can only record the reaction time of the guy who actively ended this round. Other interactive experiments might have different requirements though.
                                 const RT = Date.now() - babe.startingTime;
                                 const trial_data = {
                                     trial_type: config.trial_type,
-                                    trial_number: CT + 1,
+                                    trial_number: babe.trial_counter,
                                     color_first_distractor:
                                         colors["firstDistractor"],
                                     color_second_distractor:
@@ -202,9 +207,14 @@ const colorReferenceViews = {
                                     RT: RT
                                 };
 
-                                // Ask the server to advance to the next round.
-                                // OK just send the results from this round as well. In this way the guy who is passively brought to the next round can also record their side of trial_data in the way they see fit.
-                                if (CT + 1 <= config.trials) {
+                                console.log(
+                                    `trial_counter is ${
+                                        babe.trial_counter
+                                    }, num_game_trials is ${
+                                        babe.num_game_trials
+                                    }`
+                                );
+                                if (babe.trial_counter < babe.num_game_trials) {
                                     babe.gameChannel.push("next_round", {
                                         colors: colorReferenceUtils.sampleColors(),
                                         prev_round_trial_data: trial_data
@@ -329,6 +339,9 @@ const colorReferenceViews = {
                 `;
 
                 $("#main").html(viewTemplate);
+
+                // We need to store this as a global variable. See above.
+                babe.num_game_trials = config.trials;
 
                 // Set the role of the participant based on the variant assigned.
                 babe.role = babe.variant == 1 ? "speaker" : "listener";
