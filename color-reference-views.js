@@ -210,7 +210,7 @@ const colorReferenceViews = {
                                         prev_round_trial_data: trial_data
                                     });
                                 } else {
-                                    babe.gameChannel.push("game_end", {
+                                    babe.gameChannel.push("end_game", {
                                         prev_round_trial_data: trial_data
                                     });
                                 }
@@ -222,6 +222,24 @@ const colorReferenceViews = {
                 // When the server tells the participant it's time to start the game with the "start_game" message (e.g. when there are enough participants for the game already for this game), the client side JS does the preparation work (e.g. initialize the UI)
                 // The payload contains two pieces of information: `lounge_id` and `nth_participant`, which indicates the rank of the current participant among all participants for this game.
                 babe.gameChannel.on("start_game", (payload) => {
+                    // Set a global state noting that the experiment hasn't finished yet.
+                    babe.gameFinished = false;
+
+                    // Add a callback to handle situations where one of the participants leaves in the middle of the experiment.
+                    babe.gameChannel.on("presence_diff", (payload) => {
+                        if (babe.gameFinished == false) {
+                            window.alert(
+                                "Sorry. Somebody just left this interactive experiment halfway through and thus it can't be finished! Please contact us to still be reimbursed for your time."
+                            );
+                            // TODO: Figure out what exactly to do when this happens.
+                            // We might not want to submit the results. If we submit, we'd also need to make sure that the participant who dropped out's ExperimentStatus is also marked as "completed" correctly.
+                            // babe.submission = colorReferenceUtils.babeSubmitWithSocket(
+                            //     babe
+                            // );
+                            // babe.submission.submit(babe);
+                        }
+                    });
+
                     // One of the participants need to generate and send the data for the very first round.
                     if (babe.variant == 2) {
                         babe.gameChannel.push("initialize_game", {
@@ -264,6 +282,7 @@ const colorReferenceViews = {
 
                 // Only save the data and do nothing else
                 babe.gameChannel.on("end_game", (payload) => {
+                    babe.gameFinished = true;
                     saveTrialData(payload.prev_round_trial_data);
 
                     babe.findNextView();
