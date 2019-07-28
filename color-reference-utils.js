@@ -58,29 +58,29 @@ const colorReferenceUtils = {
         return `hsl(${hslArray[0]},${hslArray[1]}%,${hslArray[2]}%)`;
     },
 
-    babeSubmitWithSocket: function(babe) {
+    magpieSubmitWithSocket: function(magpie) {
         const submit = {
             // submits the data
             // trials - the data collected from the experiment
             // global_data - other data (start date, user agent, etc.)
             // config - information about the deploy method and URLs
-            submit: function(babe) {
+            submit: function(magpie) {
                 // construct data object for output
                 let data = {
-                    experiment_id: babe.deploy.experimentID,
-                    trials: addEmptyColumns(babe.trial_data),
-                    variant: babe.variant,
-                    chain: babe.chain,
-                    realization: babe.realization,
-                    participant_id: babe.participant_id
+                    experiment_id: magpie.deploy.experimentID,
+                    trials: addEmptyColumns(magpie.trial_data),
+                    variant: magpie.variant,
+                    chain: magpie.chain,
+                    realization: magpie.realization,
+                    participant_id: magpie.participant_id
                 };
 
                 // merge in global_data accummulated so far
                 // this could be unsafe if 'global_data' contains keys used in 'trials'!!
-                data = _.merge(babe.global_data, data);
+                data = _.merge(magpie.global_data, data);
 
                 // add more fields depending on the deploy method
-                if (babe.deploy.is_MTurk) {
+                if (magpie.deploy.is_MTurk) {
                     const HITData = getHITData();
                     data["assignment_id"] = HITData["assignmentId"];
                     data["worker_id"] = HITData["workerId"];
@@ -89,9 +89,9 @@ const colorReferenceUtils = {
                     // creates a form with assignmentId input for the submission ot MTurk
                     var form = jQuery("<form/>", {
                         id: "mturk-submission-form",
-                        action: babe.deploy.MTurk_server,
+                        action: magpie.deploy.MTurk_server,
                         method: "POST"
-                    }).appendTo(".babe-thanks-view");
+                    }).appendTo(".magpie-thanks-view");
                     jQuery("<input/>", {
                         type: "hidden",
                         name: "trials",
@@ -106,10 +106,10 @@ const colorReferenceUtils = {
                     }).appendTo(form);
                 }
                 submitResults(
-                    babe.deploy.contact_email,
-                    babe.deploy.submissionURL,
+                    magpie.deploy.contact_email,
+                    magpie.deploy.submissionURL,
                     flattenData(data),
-                    babe.deploy
+                    magpie.deploy
                 );
             }
         };
@@ -125,19 +125,19 @@ const colorReferenceUtils = {
             // the results are sent to the server
             // if it is set to false
             // the results are displayed on the thanks slide
-            if (babe.deploy.liveExperiment) {
+            if (magpie.deploy.liveExperiment) {
                 console.log("submits");
                 //submitResults(config_deploy.contact_email, config_deploy.submissionURL, data);
-                babe.participantChannel
+                magpie.participantChannel
                     .push("submit_results", {
                         results: data
                     })
                     .receive("ok", () => {
-                        $("#warning-message").addClass("babe-nodisplay");
-                        $("#thanks-message").removeClass("babe-nodisplay");
-                        $("#extra-message").removeClass("babe-nodisplay");
+                        $("#warning-message").addClass("magpie-nodisplay");
+                        $("#thanks-message").removeClass("magpie-nodisplay");
+                        $("#extra-message").removeClass("magpie-nodisplay");
 
-                        if (babe.deploy.is_MTurk) {
+                        if (magpie.deploy.is_MTurk) {
                             // submits to MTurk's server if isMTurk = true
                             setTimeout(function() {
                                 submitToMTurk(), 500;
@@ -145,12 +145,12 @@ const colorReferenceUtils = {
                         }
                     })
                     .receive("error", (reasons) => {
-                        if (babe.deploy.is_MTurk) {
+                        if (magpie.deploy.is_MTurk) {
                             // submits to MTurk's server if isMTurk = true
                             submitToMTurk();
 
                             // shows a thanks message after the submission
-                            $("#thanks-message").removeClass("babe-nodisplay");
+                            $("#thanks-message").removeClass("magpie-nodisplay");
                         } else {
                             // It seems that this timeout (waiting for the server) is implemented as a default value in many browsers, e.g. Chrome. However it is really long (1 min) so timing out shouldn't be such a concern.
                             alert(
@@ -165,9 +165,9 @@ const colorReferenceUtils = {
             } else {
                 const flattenedData = data;
                 jQuery("<div/>", {
-                    class: "babe-debug-results",
+                    class: "magpie-debug-results",
                     html: formatDebugData(flattenedData)
-                }).appendTo($("#babe-debug-table-container"));
+                }).appendTo($("#magpie-debug-table-container"));
                 createCSVForDownload(flattenedData);
             }
         }
@@ -207,7 +207,7 @@ const colorReferenceUtils = {
 
         // prepare the data form debug mode
         const formatDebugData = function(flattenedData) {
-            var output = "<table id='babe-debug-table'>";
+            var output = "<table id='magpie-debug-table'>";
 
             var t = flattenedData[0];
 
@@ -271,11 +271,11 @@ const colorReferenceUtils = {
                 window.navigator.msSaveBlob(blob, "results.csv");
             } else {
                 jQuery("<a/>", {
-                    class: "babe-view-button",
+                    class: "magpie-view-button",
                     html: "Download the results as CSV",
                     href: window.URL.createObjectURL(blob),
                     download: "results.csv"
-                }).appendTo($(".babe-thanks-view"));
+                }).appendTo($(".magpie-thanks-view"));
             }
         };
 

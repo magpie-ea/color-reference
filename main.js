@@ -8,7 +8,7 @@ $("document").ready(function() {
         }
     };
 
-    babeInit({
+    magpieInit({
         // views_seq: [init, intro, instructions, lobby, game, thanks],
         views_seq: [init, intro, instructions, lobby, game, thanks],
         deploy: {

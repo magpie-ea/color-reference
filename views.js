@@ -5,7 +5,7 @@
     * trials: int - the number of trials this view will appear
     * name: string
 
-* More about the properties and functions of the wrapping views - https://github.com/babe-project/babe-project/blob/master/docs/views.md#wrapping-views-properties
+* More about the properties and functions of the wrapping views - https://github.com/magpie-ea/magpie-modules/blob/master/docs/views.md#wrapping-views-properties
 
 */
 
@@ -15,16 +15,16 @@ const init = colorReferenceViews.init({
     title: "Initializing"
 });
 
-const intro = babeViews.intro({
+const intro = magpieViews.intro({
     name: "intro",
     trials: 1,
     title: "Welcome!",
     text:
-        'This is an example of an interactive experiment with _babe. It is a replication of the color reference game. More information can be found <a href="https://babe-project.github.io/babe_site/">here</a>.',
+        'This is an example of an interactive experiment with _magpie. It is a replication of the color reference game. More information can be found <a href="https://magpie-ea.github.io/magpie-site/">here</a>.',
     buttonText: "Begin Experiment"
 });
 
-const instructions = babeViews.instructions({
+const instructions = magpieViews.instructions({
     trials: 1,
     name: "instructions",
     title: "General Instructions",
@@ -59,7 +59,7 @@ const thanks = colorReferenceViews.thanksWithSocket({
     prolificConfirmText: "Press the button"
 });
 
-/** trial (babe's Trial Type Views) below
+/** trial (magpie's Trial Type Views) below
 
 * Obligatory properties
 
@@ -74,11 +74,11 @@ const thanks = colorReferenceViews.thanksWithSocket({
     - pause: number (in ms) - blank screen before the fixation point or stimulus show
     - fix_duration: number (in ms) - blank screen with fixation point in the middle
     - stim_duration: number (in ms) - for how long to have the stimulus on the screen
-        More about trial lifecycle - https://github.com/babe-project/babe-project/blob/master/docs/views.md#trial-views-lifecycle
+        More about trial lifecycle - https://github.com/magpie-ea/magpie-modules/blob/master/docs/views.md#trial-views-lifecycle
 
     - hook: object - option to hook and add custom functions to the view   
-        More about hooks - https://github.com/babe-project/babe-project/blob/master/docs/views.md#trial-views-hooks
+        More about hooks - https://github.com/magpie-ea/magpie-modules/blob/master/docs/views.md#trial-views-hooks
 
-* All about the properties of trial - https://github.com/babe-project/babe-project/blob/master/docs/views.md#properties-of-trial
+* All about the properties of trial - https://github.com/magpie-ea/magpie-modules/blob/master/docs/views.md#properties-of-trial
 
 */

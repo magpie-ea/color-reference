@@ -9,7 +9,7 @@
     "author": "Xiang Ji",
     "license": "ISC",
     "dependencies": {
-        "babe-project": "0.0.24",
+        "magpie-modules": "0.0.33",
         "phoenix": "^1.4.0"
     }
 }

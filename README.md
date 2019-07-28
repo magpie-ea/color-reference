@@ -1,4 +1,4 @@
-Demo of interactive experiments with \_babe.
+Demo of interactive experiments with \_magpie.
 
 Online demo available [here](https://color-reference.netlify.com/). You need to open the link twice, because it is a game for 2 players.
 

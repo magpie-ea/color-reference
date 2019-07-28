@@ -16,3 +16,7 @@
 .speaker-target {
     border: 5px solid black;
 }
+
+.color-container {
+    width: 400px;
+}
