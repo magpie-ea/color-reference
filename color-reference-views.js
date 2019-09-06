@@ -323,7 +323,7 @@ const colorReferenceViews = {
                             <div class="magpie-view-answer-container">
                         <form id="chat-form">
                             <textarea cols=50 class='magpie-response-text'
-                                placeholder="Send message to the other participant."
+                                placeholder="Type your message to the other participant here."
                                 id="participant-msg"
                             ></textarea>
                             <button type="submit" class="magpie-view-button">Send</button>
@@ -355,7 +355,7 @@ const colorReferenceViews = {
                     if (role == "speaker") {
                         title.innerText = "You are the speaker";
                         instructions.innerText =
-                            "Send messages to tell the listener which object is the target (the one with the border)";
+                            "Send messages to tell the listener which object is the target (the one with the border).";
                     } else if (role == "listener") {
                         title.innerText = "You are the listener";
                         instructions.innerText =
@@ -374,6 +374,7 @@ const colorReferenceViews = {
 
                         let text = document.getElementById("participant-msg")
                             .value;
+                       document.getElementById("participant-msg").value = '';
                         magpie.gameChannel.push("new_msg", {
                             message: `${magpie.role}: ${text}`
                         });
