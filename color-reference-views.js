@@ -204,6 +204,10 @@ const colorReferenceViews = {
                                         div.style["background-color"],
                                     // Better put them into one single string.
                                     conversation: magpie.conversation.join("\n"),
+                                    speaker_chat: magpie.speaker_chat.join("|||"),
+                                    listener_chat: magpie.listener_chat.join("|||"),
+                                    speaker_timestamps: magpie.speaker_timestamps.join("|||"),
+                                    listener_timestamps: magpie.speaker_timestamps.join("|||"),
                                     RT: RT
                                 };
 
@@ -269,6 +273,10 @@ const colorReferenceViews = {
                     );
                     chatBox.appendChild(msgBlock);
                     magpie.conversation.push(payload.message);
+                    magpie.speaker_chat.push(payload.speaker_chat);
+                    magpie.listener_chat.push(payload.listener_chat);
+                    magpie.speaker_timestamps.push(payload.speaker_timestamps);
+                    magpie.listener_timestamps.push(payload.listener_timestamps);
                 });
 
                 // Things to do on initialize_game, next_round and end_game are slightly different.
@@ -364,6 +372,11 @@ const colorReferenceViews = {
                 };
 
                 magpie.conversation = [];
+                magpie.speaker_chat = [];
+                magpie.listener_chat = [];
+                magpie.speaker_timestamps = [];
+                magpie.listener_timestamps = [];
+                
 
                 // Messages are sent to each other via the `new_msg` event.
                 // I think we have to clone the element if we
@@ -376,7 +389,11 @@ const colorReferenceViews = {
                             .value;
                        document.getElementById("participant-msg").value = '';
                         magpie.gameChannel.push("new_msg", {
-                            message: `${magpie.role}: ${text}`
+                            message: `${magpie.role}: ${text}`,
+                            speaker_chat: `${text}`,
+                            listener_chat: `${text}`,
+                            speaker_timestamps: Date.now(),
+                            listener_timestamps: Date.now()
                         });
                     });
 
