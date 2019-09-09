@@ -10,7 +10,7 @@ $("document").ready(function() {
 
     magpieInit({
         // views_seq: [init, intro, instructions, lobby, game, thanks],
-        views_seq: [init, intro, instructions, lobby, game, thanks],
+        views_seq: [init, intro, instructions, lobby, game, postTest, thanks],
         deploy: {
             // experimentID: "20",
             experimentID: "50",

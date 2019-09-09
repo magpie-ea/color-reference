@@ -51,6 +51,14 @@ const game = colorReferenceViews.game({
     title: "Color Reference Game"
 });
 
+const postTest = magpieViews.postTest({
+    name: "postTest",
+    trials: 1,
+    title: "Questions",
+    text: `Some text...`,
+    buttonText: "Continue"
+});
+
 // submits the results
 const thanks = colorReferenceViews.thanksWithSocket({
     trials: 1,
