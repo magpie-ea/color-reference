@@ -369,13 +369,13 @@ const colorReferenceViews = {
                         "game-instructions"
                     );
                     if (role == "speaker") {
-                        title.innerText = "You are the speaker";
+                        title.innerText = "You are the manager";
                         instructions.innerText =
-                            "Send messages to tell the listener which object is the target (the one with the border).";
+                            "Send messages to tell the intern which object is the target (the one with the border).";
                     } else if (role == "listener") {
-                        title.innerText = "You are the listener";
+                        title.innerText = "You are the intern";
                         instructions.innerText =
-                            "Communicate with the speaker using the chatbox. Click on the target object which the speaker is telling you about once you feel confident enough.";
+                            "Communicate with the manager using the chatbox. Click on the target object which the manager is telling you about once you feel confident enough.";
                     }
                 };
 
