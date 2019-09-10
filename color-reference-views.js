@@ -177,10 +177,14 @@ const colorReferenceViews = {
                         "color-div"
                     );
                     let count = 0;
+                    // var pos = {};
                     for (let [type, color] of Object.entries(colors)) {
                         fillColor(color_divs[indices[count]], color, type);
+                        // pos[type] = indices[count];
                         count += 1;
                     }
+
+                    console.log("Todo: Positions are logged the same for listener and speaker even though they differ");
 
                     // Only the listener can select a response apparently.
                     if (magpie.variant == 2) {
@@ -199,6 +203,10 @@ const colorReferenceViews = {
                                     color_second_distractor:
                                         colors["secondDistractor"],
                                     color_target: colors["target"],
+                                    // pos_first_distractor:
+                                    //     pos["firstDistractor"],
+                                    // pos_second_distractor: pos["secondDistractor"],
+                                    // pos_target: pos["target"],
                                     selected_type: div.dataset.type,
                                     selected_color:
                                         div.style["background-color"],
