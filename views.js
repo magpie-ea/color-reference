@@ -20,7 +20,9 @@ const intro = magpieViews.intro({
     trials: 1,
     title: "Welcome!",
     text:
-        'This is an example of an interactive experiment with _magpie. It is a replication of the color reference game. More information can be found <a href="https://magpie-ea.github.io/magpie-site/">here</a>.',
+        'Thank you for participating in our study. In this study, you will be paired with another MTurk worker and are asked to communicate and identify colors. It will take approximately <strong>3</strong> minutes.',
+    // legal_info:
+    //     '<strong>LEGAL INFORMATION</strong>:<br><br>We invite you to participate in a research study on language production and comprehension.<br>Your experimenter will ask you to do a linguistic task such as reading sentences or words, naming pictures or describing scenes, making up sentences of your own, or participating in a simple language game.<br><br>You will be paid for your participation at the posted rate.<br><br>There are no risks or benefits of any kind involved in this study.<br><br>If you have read this form and have decided to participate in this experiment, please understand your participation is voluntary and you have the right to withdraw your consent or discontinue participation at any time without penalty or loss of benefits to which you are otherwise entitled. You have the right to refuse to do particular tasks. Your individual privacy will be maintained in all published and written data resulting from the study.<br>You may print this form for your records.<br><br>CONTACT INFORMATION:<br>If you have any questions, concerns or complaints about this research study, its procedures, risks and benefits, you should contact the Protocol Director Meghan Sumner at <br>(650)-725-9336<br><br>If you are not satisfied with how this study is being conducted, or if you have any concerns, complaints, or general questions about the research or your rights as a participant, please contact the Stanford Institutional Review Board (IRB) to speak to someone independent of the research team at (650)-723-2480 or toll free at 1-866-680-2906. You can also write to the Stanford IRB, Stanford University, 3000 El Camino Real, Five Palo Alto Square, 4th Floor, Palo Alto, CA 94306 USA.<br><br>If you agree to participate, please proceed to the study tasks.',
     buttonText: "Begin Experiment"
 });
 
@@ -28,12 +30,17 @@ const instructions = magpieViews.instructions({
     trials: 1,
     name: "instructions",
     title: "General Instructions",
-    text: `In this experiment, two participants interact with each other. In each trial, three colors are shown to the participants. Only the speaker knows which of the three colors is the <i>target</i> color. The speaker and the listener can talk to each other via a chat box. Once the listener feels confident enough, they will click on one of the colors. The experiment then moves on to the next trial.
+    text: `In this experiment you will play a communication game with another MTurk worker. In each round, you and your partner are shown three color patches. One of you will see a thick black border around one of those patches. This player will be called the <strong>manager</strong>. The other player is the <strong>intern</strong>. It's the goal in each round that the intern can find and click on that color. The manager needs to tell the intern which color patch they need to click on. 
+
+    <br>
+    <br>
+
+    You can talk to each other freely over a chat box. Remember that both of you can see the same colors but in a scrambled order, which means that <strong>information about the location is not useful</strong>. Once the intern feels confident enough, they can click on one of the colors. The experiment then moves on to the next round. The roles will be assigned at random.
     
     <br>
     <br>
 
-    The first participant will be put in the "lobby" waiting for another participant to join. Once two participants are matched with each other, the experiment starts.
+    You can now enter the lobby to wait for a partner. The matching procedure should be fairly quick, so please pay attention and don't let your partner wait.
     `,
     buttonText: "To the Lobby"
 });
@@ -54,8 +61,8 @@ const game = colorReferenceViews.game({
 const postTest = magpieViews.postTest({
     name: "postTest",
     trials: 1,
-    title: "Questions",
-    text: `Some text...`,
+    title: "Additional Info",
+    text: "Answering the following questions is optional, but will help us understand your answers.",
     buttonText: "Continue"
 });
 
