@@ -194,7 +194,7 @@ const colorReferenceViews = {
                         for (let div of color_divs) {
                             div.onclick = (e) => {
                                 // Note that we can only record the reaction time of the guy who actively ended this round. Other interactive experiments might have different requirements though.
-                                if (typeof(magpie.speaker_chat.length) != "undefined") {
+                                //if (typeof(magpie.speaker_chat) != "undefined") {
                                 // proceed only if at least one message has been sent by the speaker
                                  const RT = Date.now() - magpie.startingTime;
                                  const trial_data = {
@@ -219,7 +219,7 @@ const colorReferenceViews = {
                                     speaker_timestamps: magpie.speaker_timestamps.join("|||"),
                                     listener_timestamps: magpie.speaker_timestamps.join("|||"),
                                     RT: RT   
-                                }
+                                //}
                                 };
 
                                 console.log(
@@ -400,7 +400,7 @@ const colorReferenceViews = {
                             .value;
                        document.getElementById("participant-msg").value = '';
                         magpie.gameChannel.push("new_msg", {
-                            message: `${magpie.role}: ${text}`,
+                            message: magpie.role == "speaker" ? "<strong>Manager</strong>" : "<strong>Intern</strong>"+ `: ${text}`,
                             speaker_chat: `${text}`,
                             listener_chat: `${text}`,
                             speaker_timestamps: Date.now(),
