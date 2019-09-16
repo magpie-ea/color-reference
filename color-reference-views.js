@@ -400,7 +400,9 @@ const colorReferenceViews = {
                             .value;
                        document.getElementById("participant-msg").value = '';
                         magpie.gameChannel.push("new_msg", {
-                            message: magpie.role == "speaker" ? "<strong>Manager</strong>" : "<strong>Intern</strong>"+ `: ${text}`,
+                            message: magpie.role == "speaker" ? 
+                            "<strong>Manager</strong>" + `: ${text}` : 
+                            "<strong>Intern</strong>" + `: ${text}`,
                             speaker_chat: `${text}`,
                             listener_chat: `${text}`,
                             speaker_timestamps: Date.now(),
