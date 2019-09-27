@@ -170,8 +170,8 @@ const colorReferenceViews = {
 
                 let setUpOneRound = function(colors) {
                     // Seems that we just have to store them globally somewhere.
-                    let indices = [0, 1, 2];
-                    colorReferenceUtils.shuffleArray(indices);
+                    magpie.indices = [0, 1, 2];
+                    colorReferenceUtils.shuffleArray(magpie.indices);
 
                     let color_divs = document.getElementsByClassName(
                         "color-div"
@@ -179,12 +179,11 @@ const colorReferenceViews = {
                     let count = 0;
                     // var pos = {};
                     for (let [type, color] of Object.entries(colors)) {
-                        fillColor(color_divs[indices[count]], color, type);
+                        fillColor(color_divs[magpie.indices[count]], color, type);
                         // pos[type] = indices[count];
                         count += 1;
                     }
 
-                    console.log("Todo: Positions are logged the same for listener and speaker even though they differ");
 
                     // Only the listener can select a response apparently.
                     if (magpie.variant == 2) {
@@ -194,50 +193,50 @@ const colorReferenceViews = {
                         for (let div of color_divs) {
                             div.onclick = (e) => {
                                 // Note that we can only record the reaction time of the guy who actively ended this round. Other interactive experiments might have different requirements though.
-                                //if (typeof(magpie.speaker_chat) != "undefined") {
                                 // proceed only if at least one message has been sent by the speaker
-                                 const RT = Date.now() - magpie.startingTime;
-                                 const trial_data = {
-                                    trial_type: config.trial_type,
-                                    trial_number: magpie.trial_counter,
-                                    color_first_distractor:
-                                        colors["firstDistractor"],
-                                    color_second_distractor:
-                                        colors["secondDistractor"],
-                                    color_target: colors["target"],
-                                    // pos_first_distractor:
-                                    //     pos["firstDistractor"],
-                                    // pos_second_distractor: pos["secondDistractor"],
-                                    // pos_target: pos["target"],
-                                    selected_type: div.dataset.type,
-                                    selected_color:
-                                        div.style["background-color"],
-                                    // Better put them into one single string.
-                                    conversation: magpie.conversation.join("\n"),
-                                    speaker_chat: magpie.speaker_chat.join("|||"),
-                                    listener_chat: magpie.listener_chat.join("|||"),
-                                    speaker_timestamps: magpie.speaker_timestamps.join("|||"),
-                                    listener_timestamps: magpie.speaker_timestamps.join("|||"),
-                                    RT: RT   
-                                //}
-                                };
-
-                                console.log(
-                                    `trial_counter is ${
-                                        magpie.trial_counter
-                                    }, num_game_trials is ${
-                                        magpie.num_game_trials
-                                    }`
-                                );
-                                if (magpie.trial_counter < magpie.num_game_trials) {
-                                    magpie.gameChannel.push("next_round", {
-                                        colors: colorReferenceUtils.sampleColors(),
-                                        prev_round_trial_data: trial_data
-                                    });
-                                } else {
-                                    magpie.gameChannel.push("end_game", {
-                                        prev_round_trial_data: trial_data
-                                    });
+                                // TODO: Timeout after X seconds, if speaker has sent not message or listener has not selected anything
+                                if (magpie.speaker_chat.length >= 1) {
+                                    const RT = Date.now() - magpie.startingTime;
+                                    const trial_data = {
+                                        trial_type: config.trial_type,
+                                        trial_number: magpie.trial_counter,
+                                        color_first_distractor:
+                                            colors["firstDistractor"],
+                                        color_second_distractor:
+                                            colors["secondDistractor"],
+                                        color_target: colors["target"],
+                                        // pos_first_distractor:
+                                        //     pos["firstDistractor"],
+                                        // pos_second_distractor: pos["secondDistractor"],
+                                        // pos_target: pos["target"],
+                                        selected_type: div.dataset.type,
+                                        selected_color:
+                                            div.style["background-color"],
+                                        // Better put them into one single string.
+                                        conversation: magpie.conversation.join("\n"),
+                                        speaker_chat: magpie.speaker_chat.join("|||"),
+                                        listener_chat: magpie.listener_chat.join("|||"),
+                                        speaker_timestamps: magpie.speaker_timestamps.join("|||"),
+                                        listener_timestamps: magpie.speaker_timestamps.join("|||"),
+                                        RT: RT
+                                    };
+                                    console.log(
+                                        `trial_counter is ${
+                                            magpie.trial_counter
+                                        }, num_game_trials is ${
+                                            magpie.num_game_trials
+                                        }`
+                                    );
+                                    if (magpie.trial_counter < magpie.num_game_trials) {
+                                        magpie.gameChannel.push("next_round", {
+                                            colors: colorReferenceUtils.sampleColors(),
+                                            prev_round_trial_data: trial_data
+                                        });
+                                    } else {
+                                        magpie.gameChannel.push("end_game", {
+                                            prev_round_trial_data: trial_data
+                                        });
+                                    }
                                 }
                             };
                         }
@@ -262,6 +261,10 @@ const colorReferenceViews = {
                             //     magpie
                             // );
                             // magpie.submission.submit(magpie);
+
+                            // disconnect from channels
+                            magpie.gameChannel.leave();
+                            magpie.participantChannel.leave();
                         }
                     });
 
@@ -284,10 +287,13 @@ const colorReferenceViews = {
                     );
                     chatBox.appendChild(msgBlock);
                     magpie.conversation.push(payload.message);
-                    magpie.speaker_chat.push(payload.speaker_chat);
-                    magpie.listener_chat.push(payload.listener_chat);
-                    magpie.speaker_timestamps.push(payload.speaker_timestamps);
-                    magpie.listener_timestamps.push(payload.listener_timestamps);
+                    if (payload.role === 'speaker') {
+                        magpie.speaker_chat.push(payload.text);
+                        magpie.speaker_timestamps.push(payload.timestamp);
+                    } else {
+                        magpie.listener_chat.push(payload.text);
+                        magpie.listener_timestamps.push(payload.timestamp);
+                    }
                 });
 
                 // Things to do on initialize_game, next_round and end_game are slightly different.
@@ -295,12 +301,12 @@ const colorReferenceViews = {
                 magpie.gameChannel.on("initialize_game", (payload) => {
                     // We run findNextView() to advance to the next round.
                     magpie.findNextView();
-
                     setUpOneRound(payload.colors);
                 });
 
                 // Get information regarding the next round and do the corresponding work.
                 magpie.gameChannel.on("next_round", (payload) => {
+                    payload.prev_round_trial_data.color_indices = magpie.indices;
                     saveTrialData(payload.prev_round_trial_data);
 
                     // We run findNextView() to advance to the next round.
@@ -312,6 +318,7 @@ const colorReferenceViews = {
                 // Only save the data and do nothing else
                 magpie.gameChannel.on("end_game", (payload) => {
                     magpie.gameFinished = true;
+                    payload.prev_round_trial_data.color_indices = magpie.indices;
                     saveTrialData(payload.prev_round_trial_data);
 
                     magpie.findNextView();
@@ -400,13 +407,12 @@ const colorReferenceViews = {
                             .value;
                        document.getElementById("participant-msg").value = '';
                         magpie.gameChannel.push("new_msg", {
-                            message: magpie.role == "speaker" ? 
+                            message: magpie.role === "speaker" ?
                             "<strong>Manager</strong>" + `: ${text}` : 
                             "<strong>Intern</strong>" + `: ${text}`,
-                            speaker_chat: `${text}`,
-                            listener_chat: `${text}`,
-                            speaker_timestamps: Date.now(),
-                            listener_timestamps: Date.now()
+                            text: text,
+                            role: magpie.role,
+                            timestamp: Date.now(),
                         });
                     });
 

@@ -8,16 +8,16 @@ $("document").ready(function() {
         }
     };
 
-    magpieInit({
+    window.magpie_monitor = magpieInit({
         // views_seq: [init, intro, instructions, lobby, game, thanks],
         views_seq: [init, intro, instructions, lobby, game, postTest, thanks],
         deploy: {
             // experimentID: "20",
-            experimentID: "50",
+            experimentID: "85",
             serverAppURL:
-                "https://babe-demo.herokuapp.com/api/submit_experiment/",
+                "https://magpie-demo.herokuapp.com/api/submit_experiment/",
             // serverAppURL: "http://localhost:4000/api/submit_experiment/",
-            socketURL: "wss://babe-demo.herokuapp.com/socket",
+            socketURL: "wss://magpie-demo.herokuapp.com/socket",
             // socketURL: "ws://localhost:4000/socket",
             deployMethod: "debug",
             contact_email: "YOUREMAIL@wherelifeisgreat.you",
