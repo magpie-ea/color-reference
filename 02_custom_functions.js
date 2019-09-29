@@ -1,7 +1,7 @@
 /* Helper functions */
 /* For generating random colors */
 // From Dawkins' code.
-const colorReferenceUtils = {
+const color_ref_utils = {
     randomColor: function(options) {
         var h = ~~(Math.random() * 360);
         var s = ~~(Math.random() * 100);

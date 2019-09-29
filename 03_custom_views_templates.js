@@ -1,4 +1,4 @@
-const colorReferenceViews = {
+const color_ref_views = {
     init: function(config) {
         const _init = {
             name: config.name,
@@ -32,7 +32,7 @@ const colorReferenceViews = {
                 };
 
                 // Generate a unique ID for each participant.
-                magpie.participant_id = colorReferenceUtils.generateId(40);
+                magpie.participant_id = color_ref_utils.generateId(40);
 
                 // Create a new socket
                 // Documentation at: https://hexdocs.pm/phoenix/js/
@@ -154,7 +154,7 @@ const colorReferenceViews = {
 
                     div.style[
                         "background-color"
-                    ] = colorReferenceUtils.produceColorStyle(color);
+                    ] = color_ref_utils.produceColorStyle(color);
 
                     div.dataset.type = type;
                 };
@@ -171,7 +171,7 @@ const colorReferenceViews = {
                 let setUpOneRound = function(colors) {
                     // Seems that we just have to store them globally somewhere.
                     magpie.indices = [0, 1, 2];
-                    colorReferenceUtils.shuffleArray(magpie.indices);
+                    color_ref_utils.shuffleArray(magpie.indices);
 
                     let color_divs = document.getElementsByClassName(
                         "color-div"
@@ -229,7 +229,7 @@ const colorReferenceViews = {
                                     );
                                     if (magpie.trial_counter < magpie.num_game_trials) {
                                         magpie.gameChannel.push("next_round", {
-                                            colors: colorReferenceUtils.sampleColors(),
+                                            colors: color_ref_utils.sampleColors(),
                                             prev_round_trial_data: trial_data
                                         });
                                     } else {
@@ -257,7 +257,7 @@ const colorReferenceViews = {
                             );
                             // TODO: Figure out what exactly to do when this happens.
                             // We might not want to submit the results. If we submit, we'd also need to make sure that the participant who dropped out's ExperimentStatus is also marked as "completed" correctly.
-                            // magpie.submission = colorReferenceUtils.magpieSubmitWithSocket(
+                            // magpie.submission = 02_custom_functions.magpieSubmitWithSocket(
                             //     magpie
                             // );
                             // magpie.submission.submit(magpie);
@@ -271,7 +271,7 @@ const colorReferenceViews = {
                     // One of the participants need to generate and send the data for the very first round.
                     if (magpie.variant == 2) {
                         magpie.gameChannel.push("initialize_game", {
-                            colors: colorReferenceUtils.sampleColors()
+                            colors: color_ref_utils.sampleColors()
                         });
                     }
                 });
@@ -426,7 +426,6 @@ const colorReferenceViews = {
 
         return _game;
     },
-
     thanksWithSocket: function(config) {
         const _thanks = {
             name: config.name,
@@ -483,7 +482,7 @@ const colorReferenceViews = {
                     console.error("No such magpie.deploy.deployMethod");
                 }
 
-                magpie.submission = colorReferenceUtils.magpieSubmitWithSocket(
+                magpie.submission = color_ref_utils.magpieSubmitWithSocket(
                     magpie
                 );
                 magpie.submission.submit(magpie);

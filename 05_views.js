@@ -9,13 +9,13 @@
 
 */
 
-const init = colorReferenceViews.init({
+const init = color_ref_views.init({
     trials: 1,
     name: "init",
     title: "Initializing"
 });
 
-const intro = magpieViews.intro({
+const intro = magpieViews.view_generator("intro",{
     name: "intro",
     trials: 1,
     title: "Welcome!",
@@ -26,7 +26,7 @@ const intro = magpieViews.intro({
     buttonText: "Begin Experiment"
 });
 
-const instructions = magpieViews.instructions({
+const instructions = magpieViews.view_generator("instructions", {
     trials: 1,
     name: "instructions",
     title: "General Instructions",
@@ -45,20 +45,20 @@ const instructions = magpieViews.instructions({
     buttonText: "To the Lobby"
 });
 
-const lobby = colorReferenceViews.interactiveExperimentLobby({
+const lobby = color_ref_views.interactiveExperimentLobby({
     name: "lobby",
     trials: 1,
     title: "Lobby",
     text: "Connecting to the server..."
 });
 
-const game = colorReferenceViews.game({
+const game = color_ref_views.game({
     name: "game",
     trials: 5,
     title: "Color Reference Game"
 });
 
-const postTest = magpieViews.postTest({
+const postTest = magpieViews.view_generator("post_test", {
     name: "postTest",
     trials: 1,
     title: "Additional Info",
@@ -67,7 +67,7 @@ const postTest = magpieViews.postTest({
 });
 
 // submits the results
-const thanks = colorReferenceViews.thanksWithSocket({
+const thanks = color_ref_views.thanksWithSocket({
     trials: 1,
     name: "thanks",
     title: "Thank you for taking part in this experiment!",

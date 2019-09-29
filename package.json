@@ -7,9 +7,9 @@
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Xiang Ji",
-    "license": "ISC",
+    "license": "MIT",
     "dependencies": {
-        "magpie-modules": "0.0.33",
+        "magpie-modules": "^0.1.2",
         "phoenix": "^1.4.0"
     }
 }
