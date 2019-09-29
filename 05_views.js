@@ -54,7 +54,7 @@ const lobby = color_ref_views.interactiveExperimentLobby({
 
 const game = color_ref_views.game({
     name: "game",
-    trials: 5,
+    trials: 1,
     title: "Color Reference Game"
 });
 
@@ -63,8 +63,87 @@ const postTest = magpieViews.view_generator("post_test", {
     trials: 1,
     title: "Additional Info",
     text: "Answering the following questions is optional, but will help us understand your answers.",
-    buttonText: "Continue"
-});
+    buttonText: "Continue"},
+    {answer_container_generator: function(config, CT) {
+            const quest = magpieUtils.view.fill_defaults_post_test(config);
+            return `<form>
+                    <p class='magpie-view-text'>
+                        <label for="age">${quest.age.title}:</label>
+                        <input type="number" name="age" min="18" max="110" id="age" />
+                    </p>
+                    <p class='magpie-view-text'>
+                        <label for="gender">${quest.gender.title}:</label>
+                        <select id="gender" name="gender">
+                            <option></option>
+                            <option value="${quest.gender.male}">${quest.gender.male}</option>
+                            <option value="${quest.gender.female}">${quest.gender.female}</option>
+                            <option value="${quest.gender.other}">${quest.gender.other}</option>
+                        </select>
+                    </p>
+                    <p class='magpie-view-text'>
+                        <label for="education">${quest.edu.title}:</label>
+                        <select id="education" name="education">
+                            <option></option>
+                            <option value="${quest.edu.graduated_high_school}">${quest.edu.graduated_high_school}</option>
+                            <option value="${quest.edu.graduated_college}">${quest.edu.graduated_college}</option>
+                            <option value="${quest.edu.higher_degree}">${quest.edu.higher_degree}</option>
+                        </select>
+                    </p>
+                    <p class='magpie-view-text'>
+                        <label for="bot">Do you think your partner was a bot or a human?</label>
+                        <select id="bot" name="bot">
+                            <option></option>
+                            <option value="bot">Bot</option>
+                            <option value="human">Human</option>
+                        </select>
+                    </p>
+                    <p class='magpie-view-text'>
+                        <label for="fun">Did you have fun?</label>
+                        <select id="fun" name="fun">
+                            <option></option>
+                            <option value="yes">yes</option>
+                            <option value="no">no</option>
+                        </select>
+                    </p>
+                    <p class='magpie-view-text'>
+                        <label for="languages" name="languages">${quest.langs.title}:<br /><span>${quest.langs.text}</</span></label>
+                        <input type="text" id="languages"/>
+                    </p>
+                    <p class="magpie-view-text">
+                        <label for="comments">${quest.comments.title}</label>
+                        <textarea name="comments" id="comments" rows="6" cols="40"></textarea>
+                    </p>
+                    <button id="next" class='magpie-view-button'>${config.button}</button>
+            </form>`
+        },
+    handle_response_function: function(config, CT, magpie, answer_container_generator, startingTime) {
+        $(".magpie-view").append(answer_container_generator(config, CT));
+
+        $("#next").on("click", function(e) {
+            // prevents the form from submitting
+            e.preventDefault();
+
+            // records the post test info
+            magpie.global_data.bot = $("#bot").val();
+            magpie.global_data.fun = $("#fun").val();
+            magpie.global_data.age = $("#age").val();
+            magpie.global_data.gender = $("#gender").val();
+            magpie.global_data.education = $("#education").val();
+            magpie.global_data.languages = $("#languages").val();
+            magpie.global_data.comments = $("#comments")
+                .val()
+                .trim();
+            magpie.global_data.endTime = Date.now();
+            magpie.global_data.timeSpent =
+                (magpie.global_data.endTime -
+                    magpie.global_data.startTime) /
+                60000;
+
+            // moves to the next view
+            magpie.findNextView();
+        });
+    }}
+);
 
 // submits the results
 const thanks = color_ref_views.thanksWithSocket({
