@@ -15,6 +15,7 @@
 
 .speaker-target {
     border: 5px solid black;
+    box-sizing: border-box;
 }
 
 .color-container {
