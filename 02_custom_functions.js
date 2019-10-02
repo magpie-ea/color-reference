@@ -58,6 +58,60 @@ const color_ref_utils = {
         return `hsl(${hslArray[0]},${hslArray[1]}%,${hslArray[2]}%)`;
     },
 
+    // submits to MTurk's servers
+    // and the correct url is given in config.MTurk_server
+    submitToMTurk: function() {
+        var form = $("#mturk-submission-form");
+        form.submit();
+    },
+
+    // parses the url to get the assignmentId and workerId
+    getHITData: function() {
+        const url = window.location.href;
+        let qArray = url.split("?");
+        let HITData = {};
+
+        if (qArray[1] === undefined) {
+            throw new Error(
+                "Cannot get participant' s assignmentId from the URL (happens if the experiment does NOT run on MTurk or MTurkSandbox)."
+            );
+        } else {
+            qArray = qArray[1].split("&");
+
+            for (var i = 0; i < qArray.length; i++) {
+                HITData[qArray[i].split("=")[0]] = qArray[i].split("=")[1];
+            }
+        }
+
+        return HITData;
+    },
+
+    // adds columns with NA values
+    addEmptyColumns: function(trialData) {
+        var columns = [];
+
+        for (var i = 0; i < trialData.length; i++) {
+            for (var prop in trialData[i]) {
+                if (
+                    trialData[i].hasOwnProperty(prop) &&
+                    columns.indexOf(prop) === -1
+                ) {
+                    columns.push(prop);
+                }
+            }
+        }
+
+        for (var j = 0; j < trialData.length; j++) {
+            for (var k = 0; k < columns.length; k++) {
+                if (!trialData[j].hasOwnProperty(columns[k])) {
+                    trialData[j][columns[k]] = "NA";
+                }
+            }
+        }
+
+        return trialData;
+    },
+
     magpieSubmitWithSocket: function(magpie) {
         const submit = {
             // submits the data
@@ -68,7 +122,7 @@ const color_ref_utils = {
                 // construct data object for output
                 let data = {
                     experiment_id: magpie.deploy.experimentID,
-                    trials: addEmptyColumns(magpie.trial_data),
+                    trials: color_ref_utils.addEmptyColumns(magpie.trial_data),
                     variant: magpie.variant,
                     chain: magpie.chain,
                     realization: magpie.realization,
@@ -81,13 +135,13 @@ const color_ref_utils = {
 
                 // add more fields depending on the deploy method
                 if (magpie.deploy.is_MTurk) {
-                    const HITData = getHITData();
+                    const HITData = color_ref_utils.getHITData();
                     data["assignment_id"] = HITData["assignmentId"];
                     data["worker_id"] = HITData["workerId"];
                     data["hit_id"] = HITData["hitId"];
 
                     // creates a form with assignmentId input for the submission ot MTurk
-                    var form = jQuery("<form/>", {
+                    const form = jQuery("<form/>", {
                         id: "mturk-submission-form",
                         action: magpie.deploy.MTurk_server,
                         method: "POST"
@@ -96,6 +150,11 @@ const color_ref_utils = {
                         type: "hidden",
                         name: "trials",
                         value: JSON.stringify(data)
+                    }).appendTo(form);
+                    jQuery("<input/>", {
+                        type: "hidden",
+                        name: "status",
+                        value: "finished"
                     }).appendTo(form);
                     // MTurk expects a key 'assignmentId' for the submission to work,
                     // that is why is it not consistent with the snake case that the other keys have
@@ -140,14 +199,14 @@ const color_ref_utils = {
                         if (magpie.deploy.is_MTurk) {
                             // submits to MTurk's server if isMTurk = true
                             setTimeout(function() {
-                                submitToMTurk(), 500;
+                                color_ref_utils.submitToMTurk(), 500;
                             });
                         }
                     })
                     .receive("error", (reasons) => {
                         if (magpie.deploy.is_MTurk) {
                             // submits to MTurk's server if isMTurk = true
-                            submitToMTurk();
+                            color_ref_utils.submitToMTurk();
 
                             // shows a thanks message after the submission
                             $("#thanks-message").removeClass("magpie-nodisplay");
@@ -171,39 +230,6 @@ const color_ref_utils = {
                 createCSVForDownload(flattenedData);
             }
         }
-
-        // submits to MTurk's servers
-        // and the correct url is given in config.MTurk_server
-        const submitToMTurk = function() {
-            var form = $("#mturk-submission-form");
-            form.submit();
-        };
-
-        // adds columns with NA values
-        const addEmptyColumns = function(trialData) {
-            var columns = [];
-
-            for (var i = 0; i < trialData.length; i++) {
-                for (var prop in trialData[i]) {
-                    if (
-                        trialData[i].hasOwnProperty(prop) &&
-                        columns.indexOf(prop) === -1
-                    ) {
-                        columns.push(prop);
-                    }
-                }
-            }
-
-            for (var j = 0; j < trialData.length; j++) {
-                for (var k = 0; k < columns.length; k++) {
-                    if (!trialData[j].hasOwnProperty(columns[k])) {
-                        trialData[j][columns[k]] = "NA";
-                    }
-                }
-            }
-
-            return trialData;
-        };
 
         // prepare the data form debug mode
         const formatDebugData = function(flattenedData) {
@@ -302,27 +328,6 @@ const color_ref_utils = {
                 return _.merge(t, data);
             });
             return out;
-        };
-
-        // parses the url to get the assignmentId and workerId
-        const getHITData = function() {
-            const url = window.location.href;
-            let qArray = url.split("?");
-            let HITData = {};
-
-            if (qArray[1] === undefined) {
-                throw new Error(
-                    "Cannot get participant' s assignmentId from the URL (happens if the experiment does NOT run on MTurk or MTurkSandbox)."
-                );
-            } else {
-                qArray = qArray[1].split("&");
-
-                for (var i = 0; i < qArray.length; i++) {
-                    HITData[qArray[i].split("=")[0]] = qArray[i].split("=")[1];
-                }
-            }
-
-            return HITData;
         };
 
         return submit;

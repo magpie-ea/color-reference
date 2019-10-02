@@ -194,7 +194,7 @@ const color_ref_views = {
                             div.onclick = (e) => {
                                 // Note that we can only record the reaction time of the guy who actively ended this round. Other interactive experiments might have different requirements though.
                                 // proceed only if at least one message has been sent by the speaker
-                                // TODO: Timeout after X seconds, if speaker has sent not message or listener has not selected anything
+                                // TODO: Timeout after X seconds, if speaker has sent no message or listener has not selected anything
                                 if (magpie.speaker_chat.length >= 1) {
                                     const RT = Date.now() - magpie.startingTime;
                                     const trial_data = {
@@ -252,9 +252,10 @@ const color_ref_views = {
                     // Add a callback to handle situations where one of the participants leaves in the middle of the experiment.
                     magpie.gameChannel.on("presence_diff", (payload) => {
                         if (magpie.gameFinished == false) {
-                            window.alert(
-                                "Sorry. Somebody just left this interactive experiment halfway through and thus it can't be finished! Please contact us to still be reimbursed for your time."
-                            );
+                            // window.alert(
+                            //     "Sorry. Somebody just left this interactive experiment halfway through and thus it can't be finished! Please contact us to still be reimbursed for your time."
+                            // );
+
                             // TODO: Figure out what exactly to do when this happens.
                             // We might not want to submit the results. If we submit, we'd also need to make sure that the participant who dropped out's ExperimentStatus is also marked as "completed" correctly.
                             // magpie.submission = 02_custom_functions.magpieSubmitWithSocket(
@@ -265,6 +266,71 @@ const color_ref_views = {
                             // disconnect from channels
                             magpie.gameChannel.leave();
                             magpie.participantChannel.leave();
+
+                            if (magpie.deploy.is_MTurk) {
+                                $("#main").html(stimulus_container_generators.fixed_text(
+                                {title: "Error",
+                                    text: `Sorry. Somebody just left this interactive experiment halfway through and 
+                                    thus it can't be finished! Please contact us to still be reimbursed for your time.`}, 0));
+                                let data = {
+                                    experiment_id: magpie.deploy.experimentID,
+                                    trials: color_ref_utils.addEmptyColumns(magpie.trial_data),
+                                    variant: magpie.variant,
+                                    chain: magpie.chain,
+                                    realization: magpie.realization,
+                                    participant_id: magpie.participant_id
+                                };
+
+                                // merge in global_data accummulated so far
+                                // this could be unsafe if 'global_data' contains keys used in 'trials'!!
+                                data = _.merge(magpie.global_data, data);
+
+                                // add more fields depending on the deploy method
+                                const HITData = color_ref_utils.getHITData();
+                                data["assignment_id"] = HITData["assignmentId"];
+                                data["worker_id"] = HITData["workerId"];
+                                data["hit_id"] = HITData["hitId"];
+
+                                // creates a form with assignmentId input for the submission ot MTurk
+                                const form = jQuery("<form/>", {
+                                    id: "mturk-submission-form",
+                                    action: magpie.deploy.MTurk_server,
+                                    method: "POST"
+                                }).appendTo(".magpie-view");
+                                jQuery("<input/>", {
+                                    type: "hidden",
+                                    name: "trials",
+                                    value: JSON.stringify(magpie.data)
+                                }).appendTo(form);
+                                jQuery("<input/>", {
+                                    type: "hidden",
+                                    name: "status",
+                                    value: "Error"
+                                }).appendTo(form);
+                                jQuery("<input/>", {
+                                    type: "hidden",
+                                    name: "status_description",
+                                    value: "One participant left the experiment."
+                                }).appendTo(form);
+                                // MTurk expects a key 'assignmentId' for the submission to work,
+                                // that is why is it not consistent with the snake case that the other keys have
+                                jQuery("<input/>", {
+                                    type: "hidden",
+                                    name: "assignmentId",
+                                    value: HITData["assignmentId"]
+                                }).appendTo(form);
+
+                                $(".magpie-view").append(answer_container_generators.one_button({button: "Finish experiment"}, 0));
+                                const next = $("#next");
+                                next.on("click", function() {
+                                    color_ref_utils.submitToMTurk();
+                                });
+                            } else {
+                                $("#main").html(stimulus_container_generators.fixed_text(
+                                    {title: "Error",
+                                        text: `Sorry. Somebody just left this interactive experiment halfway through and 
+                                    thus it can't be finished! Please contact us at ${magpie.deploy.contact_email} to still be reimbursed for your time.`}, 0));
+                            }
                         }
                     });
 
