@@ -16,18 +16,20 @@ const color_ref_utils = {
         var target = this.randomColor(opts);
         var firstDistractor = this.randomColor(opts);
         var secondDistractor = this.randomColor(opts);
+        var thirdDistractor = this.randomColor(opts);
 
         return {
             target,
             firstDistractor,
-            secondDistractor
+            secondDistractor,
+            thirdDistractor
         };
     },
 
     // Produce random indices so that in each trial the position of the target div is different.
     // The first index is the target's, the second the first distractor's, the third the second distractor's
     sampleIndices: function() {
-        let indices = [0, 1, 2];
+        let indices = [0, 1, 2, 3];
         this.shuffleArray(indices);
         return indices;
     },

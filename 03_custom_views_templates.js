@@ -170,7 +170,7 @@ const color_ref_views = {
 
                 let setUpOneRound = function(colors) {
                     // Seems that we just have to store them globally somewhere.
-                    magpie.indices = [0, 1, 2];
+                    magpie.indices = [0, 1, 2, 3];
                     color_ref_utils.shuffleArray(magpie.indices);
 
                     let color_divs = document.getElementsByClassName(
@@ -205,6 +205,7 @@ const color_ref_views = {
                                         color_second_distractor:
                                             colors["secondDistractor"],
                                         color_target: colors["target"],
+                                        color_third_distractor: colors["thirdDistractor"],
                                         // pos_first_distractor:
                                         //     pos["firstDistractor"],
                                         // pos_second_distractor: pos["secondDistractor"],
@@ -437,10 +438,11 @@ const color_ref_views = {
                         </form>
                         </div>
 
-                        <div class="color-container magpie-view-stimulus-container">
+                        <div class="color-container">
                             <div class="color-div color-div-1"></div>
                             <div class="color-div color-div-2"></div>
                             <div class="color-div color-div-3"></div>
+                            <div class="color-div color-div-4"></div>
                         </div>
                     </div>
                 `;
