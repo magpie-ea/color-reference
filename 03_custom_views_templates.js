@@ -365,6 +365,11 @@ const color_ref_views = {
                 // Things to do on initialize_game, next_round and end_game are slightly different.
                 // Another way is to tell them apart via some payload content. But the following way also works.
                 magpie.gameChannel.on("initialize_game", (payload) => {
+                    const view = $("#main");
+                    const container = jQuery("<div/>", {
+                        id: "snackbar"
+                    });
+                    view.after(container);
                     // We run findNextView() to advance to the next round.
                     magpie.findNextView();
                     setUpOneRound(payload.colors);
@@ -372,6 +377,16 @@ const color_ref_views = {
 
                 // Get information regarding the next round and do the corresponding work.
                 magpie.gameChannel.on("next_round", (payload) => {
+                    let snackbar = document.getElementById("snackbar");
+                    if (payload.prev_round_trial_data.selected_type === "target") {
+                        snackbar.innerHTML = "The last round was successful.";
+                    } else {
+                        snackbar.innerHTML = "The last choice was incorrect.";
+                    }
+                    snackbar.className = "show";
+                    setTimeout(function() {
+                        snackbar.className = 'hide';
+                    }, 2000);
                     payload.prev_round_trial_data.color_indices = magpie.indices;
                     saveTrialData(payload.prev_round_trial_data);
 
