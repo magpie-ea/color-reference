@@ -54,8 +54,9 @@ const lobby = color_ref_views.interactiveExperimentLobby({
 
 const game = color_ref_views.game({
     name: "game",
-    trials: 3,
-    title: "Color Reference Game"
+    trials: main_trials.color_ref.length,
+    title: "Color Reference Game",
+    data: main_trials.color_ref
 });
 
 const postTest = magpieViews.view_generator("post_test", {

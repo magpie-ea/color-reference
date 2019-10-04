@@ -143,7 +143,8 @@ const color_ref_views = {
                     div.classList.remove([
                         "target",
                         "distractor1",
-                        "distractor2"
+                        "distractor2",
+                        "distractor3"
                     ]);
 
                     div.classList.add(type);
@@ -152,9 +153,9 @@ const color_ref_views = {
                         div.classList.add("speaker-target");
                     }
 
-                    div.style[
+                    /*div.style[
                         "background-color"
-                    ] = color_ref_utils.produceColorStyle(color);
+                    ] = color_ref_utils.produceColorStyle(color);*/
 
                     div.dataset.type = type;
                 };
@@ -169,10 +170,12 @@ const color_ref_views = {
                 };
 
                 let setUpOneRound = function(colors) {
+
+                    /*
                     // Seems that we just have to store them globally somewhere.
                     magpie.indices = [0, 1, 2, 3];
                     color_ref_utils.shuffleArray(magpie.indices);
-
+                    */
                     let color_divs = document.getElementsByClassName(
                         "color-div"
                     );
@@ -194,13 +197,13 @@ const color_ref_views = {
                             div.onclick = (e) => {
                                 // Note that we can only record the reaction time of the guy who actively ended this round. Other interactive experiments might have different requirements though.
                                 // proceed only if at least one message has been sent by the speaker
-                                // TODO: Timeout after X seconds, if speaker has sent no message or listener has not selected anything
                                 if (magpie.speaker_chat.length >= 1) {
                                     const RT = Date.now() - magpie.startingTime;
                                     const trial_data = {
                                         trial_type: config.trial_type,
                                         trial_number: magpie.trial_counter,
-                                        color_first_distractor:
+
+                                       /* color_first_distractor:
                                             colors["firstDistractor"],
                                         color_second_distractor:
                                             colors["secondDistractor"],
@@ -212,13 +215,15 @@ const color_ref_views = {
                                         // pos_target: pos["target"],
                                         selected_type: div.dataset.type,
                                         selected_color:
-                                            div.style["background-color"],
+                                            div.style["background-color"], */
+                                        images: magpie.curr_images,
+                                        selected_image: div.innerHTML,
                                         // Better put them into one single string.
                                         conversation: magpie.conversation.join("\n"),
                                         speaker_chat: magpie.speaker_chat.join("|||"),
                                         listener_chat: magpie.listener_chat.join("|||"),
                                         speaker_timestamps: magpie.speaker_timestamps.join("|||"),
-                                        listener_timestamps: magpie.speaker_timestamps.join("|||"),
+                                        listener_timestamps: magpie.listener_timestamps.join("|||"),
                                         RT: RT
                                     };
                                     console.log(
@@ -494,6 +499,9 @@ const color_ref_views = {
             name: config.name,
             title: config.title,
             render: function(CT, magpie) {
+                magpie.indices = [0,1,2,3];
+                color_ref_utils.shuffleArray(magpie.indices);
+
                 const viewTemplate = `
                     <div class='magpie-view'>
                         <h1 id="title" class='magpie-view-title'>${
@@ -516,15 +524,18 @@ const color_ref_views = {
                         </div>
 
                         <div class="color-container">
-                            <div class="color-div color-div-1"></div>
-                            <div class="color-div color-div-2"></div>
-                            <div class="color-div color-div-3"></div>
-                            <div class="color-div color-div-4"></div>
+                            <div class="color-div color-div-1"><img class='color-img' src=images/${config.data[CT][magpie.indices[0]]}/></div>
+                            <div class="color-div color-div-2"><img class='color-img' src=images/${config.data[CT][magpie.indices[1]]}/></div>
+                            <div class="color-div color-div-3"><img class='color-img' src=images/${config.data[CT][magpie.indices[2]]}/></div>
+                            <div class="color-div color-div-4"><img class='color-img' src=images/${config.data[CT][magpie.indices[3]]}/></div>
                         </div>
                     </div>
                 `;
 
                 $("#main").html(viewTemplate);
+
+                // Quick Hack Save current images globally
+                magpie.curr_images = config.data[CT];
 
                 // We need to store this as a global variable. See above.
                 magpie.num_game_trials = config.trials;
