@@ -345,6 +345,7 @@ const color_ref_views = {
 
                 // Display the message received from the server upon `new_msg` event.
                 magpie.gameChannel.on("new_msg", (payload) => {
+                    document.title = old_title;
                     let chatBox = document.querySelector("#chat-box");
                     let msgBlock = document.createElement("p");
                     msgBlock.classList.add("magpie-view-text");
@@ -357,11 +358,65 @@ const color_ref_views = {
                     if (payload.role === 'speaker') {
                         magpie.speaker_chat.push(payload.text);
                         magpie.speaker_timestamps.push(payload.timestamp);
+                        // Stop old intervals
+                        idle_time = 0;
+                        clearInterval(interval_storage);
+                        // hide snackbar
+                        let snackbar = document.getElementById("snackbar");
+                        snackbar.className = "hide";
+
+                        if (magpie.role === 'listener') {
+                            // Start listener interval
+                            interval_storage = setInterval(timer_fn, 2000);
+                        }
+
                     } else {
                         magpie.listener_chat.push(payload.text);
                         magpie.listener_timestamps.push(payload.timestamp);
                     }
                 });
+
+                // For timer/interval
+                let idle_time = 0;
+                const max_time = 90; // in seconds
+                const show_info_time = 0.5; // In percent; show warning after 50%
+                // information needed for blinking of page title
+                let is_old_title = true;
+                const old_title = document.title;
+                const new_title = "Still here?";
+                // text displayed on the snackbar, to inform the user that he should do something
+                const snack_text = magpie.variant === 1 ? "Please give a hint!" : "Please select something!";
+                // Interval storage
+                let interval_storage = undefined;
+                function timer_fn() {
+                    // increment time by 2 seconds
+                    idle_time = idle_time + 2;
+                    // get the snackbar and update the content
+                    let snackbar = document.getElementById("snackbar");
+                    snackbar.innerHTML = `${snack_text} <br> ${max_time - Math.ceil(idle_time)} seconds remaining`;
+                    // timer has still plenty of time left, hide snackbar (or fade it out)
+                    if (idle_time  < (1-show_info_time) * max_time) {
+                        snackbar.className = snackbar.className === "show"? "fade" : "hide";
+                        document.title = old_title;
+                    // last show_info_time percent of time, show snackbar and blink page title
+                    } else if (idle_time < max_time ) {
+                        snackbar.className = "show";
+                        document.title = is_old_title? old_title : new_title;
+                        is_old_title = !is_old_title;
+                        // timer is finished, reset the timer and call the end_function
+                    } else {
+                        idle_time = 0;
+                        // Stop interval
+                        clearInterval(interval_storage);
+                        // Disconnect from the channels
+                        magpie.gameChannel.leave();
+                        magpie.participantChannel.leave();
+                        // Show error
+                        $("#main").html(stimulus_container_generators.fixed_text(
+                            {title: "Error",
+                                text: `Sorry. You timed out!`}, 0));
+                    }
+                }
 
                 // Things to do on initialize_game, next_round and end_game are slightly different.
                 // Another way is to tell them apart via some payload content. But the following way also works.
@@ -374,10 +429,16 @@ const color_ref_views = {
                     // We run findNextView() to advance to the next round.
                     magpie.findNextView();
                     setUpOneRound(payload.colors);
+                    if (magpie.role === 'speaker') {
+                        // Start speaker timeout
+                        interval_storage = setInterval(timer_fn, 2000);
+                    }
+
                 });
 
                 // Get information regarding the next round and do the corresponding work.
                 magpie.gameChannel.on("next_round", (payload) => {
+                    document.title = old_title;
                     let snackbar = document.getElementById("snackbar");
                     if (payload.prev_round_trial_data.selected_type === "target") {
                         snackbar.innerHTML = "The last round was successful.";
@@ -395,6 +456,15 @@ const color_ref_views = {
                     magpie.findNextView();
 
                     setUpOneRound(payload.colors);
+                    // Stop old intervals
+                    idle_time = 0;
+                    clearInterval(interval_storage);
+
+                    if (magpie.role === 'speaker') {
+                        // Start speaker timeout
+                        interval_storage = setInterval(timer_fn, 2000);
+                    }
+
                 });
 
                 // Only save the data and do nothing else
@@ -404,6 +474,13 @@ const color_ref_views = {
                     saveTrialData(payload.prev_round_trial_data);
 
                     magpie.findNextView();
+                    // Stop all intervals
+                    idle_time = 0;
+                    clearInterval(interval_storage);
+                    // hide snackbar
+                    let snackbar = document.getElementById("snackbar");
+                    snackbar.className = "hide";
+
                 });
             },
             CT: 0,
