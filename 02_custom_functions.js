@@ -26,6 +26,21 @@ const color_ref_utils = {
         };
     },
 
+    sampleImages: function() {
+        const images = _.shuffle(['question_mark_01.png', 'question_mark_02.png', 'question_mark_03.jpg', 'question_mark_04.png']);
+        const target = images[0];
+        const firstDistractor = images[1];
+        const secondDistractor = images[2];
+        const thirdDistractor = images[3];
+
+        return {
+            target,
+            firstDistractor,
+            secondDistractor,
+            thirdDistractor
+        };
+    },
+
     // Produce random indices so that in each trial the position of the target div is different.
     // The first index is the target's, the second the first distractor's, the third the second distractor's
     sampleIndices: function() {
