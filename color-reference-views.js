@@ -253,15 +253,15 @@ const colorReferenceViews = {
                     // Add a callback to handle situations where one of the participants leaves in the middle of the experiment.
                     magpie.gameChannel.on("presence_diff", (payload) => {
                         if (magpie.gameFinished == false) {
+                          // We save the intermediate results. `true` means the results are intermediate.
+                          magpie.submission = colorReferenceUtils.magpieSubmitWithSocket(
+                            magpie, true
+                          );
+                          magpie.submission.submit(magpie);
+                          
                             window.alert(
                                 "Sorry. Somebody just left this interactive experiment halfway through and thus it can't be finished! Please contact us to still be reimbursed for your time."
                             );
-                            // TODO: Figure out what exactly to do when this happens.
-                            // We might not want to submit the results. If we submit, we'd also need to make sure that the participant who dropped out's ExperimentStatus is also marked as "completed" correctly.
-                            // magpie.submission = colorReferenceUtils.magpieSubmitWithSocket(
-                            //     magpie
-                            // );
-                            // magpie.submission.submit(magpie);
                         }
                     });
 

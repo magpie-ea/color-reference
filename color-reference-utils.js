@@ -58,7 +58,7 @@ const colorReferenceUtils = {
         return `hsl(${hslArray[0]},${hslArray[1]}%,${hslArray[2]}%)`;
     },
 
-    magpieSubmitWithSocket: function(magpie) {
+  magpieSubmitWithSocket: function(magpie, isIntermediate = false) {
         const submit = {
             // submits the data
             // trials - the data collected from the experiment
@@ -109,27 +109,31 @@ const colorReferenceUtils = {
                     magpie.deploy.contact_email,
                     magpie.deploy.submissionURL,
                     flattenData(data),
-                    magpie.deploy
+                    magpie.deploy,
+                    isIntermediate
                 );
             }
         };
 
-        function submitResults(contactEmail, submissionURL, data, config) {
+      function submitResults(contactEmail, submissionURL, data, config, isIntermediate = false) {
             // set a default contact email
             contactEmail =
                 typeof contactEmail !== "undefined"
                     ? contactEmail
                     : "not provided";
 
+
+        const submissionMessage = isIntermediate ? "save_intermediate_results" : "submit_results" 
             // if the experiment is set to live (see config liveExperiment)
             // the results are sent to the server
             // if it is set to false
             // the results are displayed on the thanks slide
             if (magpie.deploy.liveExperiment) {
                 console.log("submits");
-                //submitResults(config_deploy.contact_email, config_deploy.submissionURL, data);
+              //submitResults(config_deploy.contact_email, config_deploy.submissionURL, data);
+
                 magpie.participantChannel
-                    .push("submit_results", {
+                    .push(submissionMessage, {
                         results: data
                     })
                     .receive("ok", () => {
