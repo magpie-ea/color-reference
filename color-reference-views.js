@@ -63,7 +63,8 @@ const colorReferenceViews = {
                 magpie.participantChannel.on(
                     'experiment_available',
                     (payload) => {
-                        // First record the assigned <variant-nr, chain-nr, generation-nr> tuple.
+                        // First record the assigned <variant-nr, chain-nr, generation-nr, player-nr> tuple.
+                        magpie.player = payload.player;
                         magpie.variant = payload.variant;
                         magpie.chain = payload.chain;
                         magpie.generation = payload.generation;
@@ -142,7 +143,7 @@ const colorReferenceViews = {
 
                     div.classList.add(type);
 
-                    if (type == 'target' && magpie.variant == 1) {
+                    if (type == 'target' && magpie.player == 1) {
                         div.classList.add('speaker-target');
                     }
 
@@ -155,7 +156,7 @@ const colorReferenceViews = {
 
                 let saveTrialData = function (prev_round_trial_data) {
                     // These could be different for each participant, thus they fill them in before recording them.
-                    prev_round_trial_data['variant'] = magpie.variant;
+                    prev_round_trial_data['player'] = magpie.player;
                     prev_round_trial_data['chain'] = magpie.chain;
                     prev_round_trial_data['generation'] = magpie.generation;
 
@@ -183,7 +184,7 @@ const colorReferenceViews = {
                     );
 
                     // Only the listener can select a response apparently.
-                    if (magpie.variant == 2) {
+                    if (magpie.player == 2) {
                         // The problem is that the CT cannot be properly obtained from the arguments because this view is not the actual game view.
                         magpie.trial_counter += 1;
 
@@ -272,7 +273,7 @@ const colorReferenceViews = {
                     });
 
                     // One of the participants need to generate and send the data for the very first round.
-                    if (magpie.variant == 2) {
+                    if (magpie.player == 2) {
                         magpie.gameChannel.push('initialize_game', {
                             colors: colorReferenceUtils.sampleColors()
                         });
@@ -369,7 +370,7 @@ const colorReferenceViews = {
                 magpie.num_game_trials = config.trials;
 
                 // Set the role of the participant based on the variant assigned.
-                magpie.role = magpie.variant == 1 ? 'speaker' : 'listener';
+                magpie.role = magpie.player == 1 ? 'speaker' : 'listener';
 
                 /* For initializing the UI when the game begins */
                 let initializeUI = function (role) {

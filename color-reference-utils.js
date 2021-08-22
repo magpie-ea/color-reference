@@ -69,6 +69,7 @@ const colorReferenceUtils = {
                 let data = {
                     experiment_id: magpie.deploy.experimentID,
                     trials: addEmptyColumns(magpie.trial_data),
+                    player: magpie.player,
                     variant: magpie.variant,
                     chain: magpie.chain,
                     generation: magpie.generation,
