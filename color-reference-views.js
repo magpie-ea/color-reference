@@ -69,6 +69,8 @@ const colorReferenceViews = {
                         magpie.chain = payload.chain;
                         magpie.generation = payload.generation;
                         // Proceed to the next view if the connection to the participant channel was successfully established.
+                        console.log(
+                            `assignment identifier:${magpie.chain}:${magpie.variant}:${magpie.generation}:${magpie.player}`
                         magpie.findNextView();
                     }
                 );
