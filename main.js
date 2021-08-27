@@ -12,8 +12,8 @@ $('document').ready(function () {
         // views_seq: [init, intro, instructions, lobby, game, thanks],
         views_seq: [init, intro, instructions, lobby, game, postTest, thanks],
         deploy: {
-            experimentID: '2',
-            // experimentID: "1",
+            // experimentID: '2',
+            experimentID: '6',
             serverAppURL:
                 'https://magpie-refactored-2.herokuapp.com/api/submit_experiment/',
             // serverAppURL: 'http://localhost:4000/api/submit_experiment/',
